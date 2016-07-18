@@ -3,7 +3,7 @@
 
 <head>
     <meta charset=utf-8 />
-    <title>Lab 01 Template</title>
+    <title>MAP 673-Lab01</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
@@ -54,21 +54,51 @@
         
         /* ADD YOUR ADDITIONAL STYLE RULES HERE */
         
+        .legend {
+            padding: 6px 8px;
+            font-size: 1em;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .legend h3 {
+            font-size: 1.1em;
+            font-weight: normal;
+            color: #001323;
+            margin: 0 0 10px 0;
+        }
+        .legend span {
+            width: 20px;
+            height: 20px;
+            float: left;
+            margin: 0 10px 4px 0;
+        }
+        .legend label {
+            font-size: 1.1em;
+        }
+        .legend label:after {
+            content: '';
+            display: block;
+            clear: both;
+        }
+        
     </style>
 </head>
 
 <body>
     <header>
         <h1>Map Title</h1>
-        <h2>Map Subtitle</h2>
+        <h2>Free and Clear Ownership</h2>
     </header>
 
     <div id='map'></div>
 
     <footer>
-        <p>Map authored by YOUR NAME</p>
-        <p>Additional information about the data and map goes here.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis urna magna, maximus nec laoreet sit amet, dictum ultricies nibh. Ut id auctor lacus. Nam a dolor et justo luctus luctus. Duis a elit eget risus dictum vehicula id eu elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed sed enim nisl. Vestibulum commodo imperdiet lacus, sed facilisis erat placerat sit amet. Nulla consequat malesuada neque eget aliquet. Integer non convallis nisl, gravida ultrices ex. Fusce nec vestibulum elit. Sed elementum lectus ipsum, vulputate elementum ex laoreet a. Aenean eu ex varius, varius felis vitae, efficitur nulla. Quisque pretium laoreet ante, in sodales dui vehicula at. Mauris eu sem sapien.
+        <p>Map authored by Paul Puckett</p>
+        <p>The map shows color values representing "free and clear" ownership as opposed to "mortgage" ownership. Click on individual counties for more information.</p>
+        <p>What is the purpose of the map?<br>The purpose of the map is to illustrate the percentage value of housing units, per county, which are owned free and clear as opposed to being owned but still part of a loan or mortgage agreement. Lighter shades of green represent lower percentages of free and clear ownership while darker shades of green represent greater percentages of ownership.</p>
+        <p>How does cartographic symbology influence or distort the representation of the data?<br>Symbology can influence or distort representation by distinction or context. In the case of this map, eastern Kentucky counties show greater free and clear ownership than more urban counties like Fayette, Jefferson, Warren, and Boone/Kenton/Campbell. If someone knew nothing about Kentucky, they may conclude that free and clear ownership is synonymous with wealth. However, as the more urban counties are far more dynamic financially, the lack of ownership may reflect an economy with a burgeoning housing development component, which would create more mortgage units than an economically static rural county with little to no new development nor changes in existing ownership (i.e. no new housing unit purchases necessitating a mortgage).</p>
+        <p>Does the map have a point of view or support an argument?<br>I don't see that the map supports an argument or point of view in and of itself. There is little context provided for the map, save for an explanation of the base data. If this map were attached to a polemic that claimed political failure was the cause for such low free and clear ownership in urban areas, that would certainly represent a misappropriation of the data. As it stands however, this particular map simply shows a single value: housing unit ownership that is free and clear as a percentage of total housing unit ownership. That being said, my use of green, the color of money, could be seen as distorting and contributing to a perception that "greener" counties are "richer" counties.
         </p>
     </footer>
 
@@ -86,7 +116,7 @@
         var map = L.map('map', options);
         
         var dataLayer,
-            attribute = "OWNED_MORT",
+            attribute = "OWNED_FREE",
             norm = "OWNER";
         
         $.getJSON("ky_counties_housing.json", function(data) {
@@ -107,17 +137,28 @@
         
         function drawMap(dataLayer) {
 
-            var breaks = getClassBreaks();
+            var breaks = getClassBreaks(dataLayer);
             
             dataLayer.eachLayer(function(layer) {
+                
+                var props = layer.feature.properties;
+                
+                var perc = ((props[attribute]/props[norm])*100);
+                
                 layer.setStyle({
-                    fillColor: getColor(layer.feature.properties[attribute]/layer.feature.properties[norm], breaks)
-                })
-            });
+                    fillColor: getColor(props[attribute]/props[norm], breaks)
+                });
+                        
+            layer.bindPopup("<b>"+props["NAME"]+ " County </b></br>" + attribute + ": " +
+                            perc.toLocaleString() + "%");
+                
+            });        
+            
+            drawLegend(breaks);
 
         }// end drawMap()
         
-        function getClassBreaks() {
+        function getClassBreaks(dataLayer) {
 
             // create empty Array for storing values
             var values = [];
@@ -142,16 +183,53 @@
         function getColor(d, breaks) {
 
               if(d <= breaks[0][1]) {
-                    return '#f1eef6';
+                    return '#edf8e9';
                 } else if(d <= breaks[1][1]) {
-                    return '#bdc9e1';
+                    return '#bae4b3';
                 } else if(d <= breaks[2][1]) {
-                    return '#74a9cf';
+                    return '#74c476';
                 } else if(d <= breaks[3][1]) {
-                    return '#2b8cbe'
+                    return '#31a354'
                 } else if(d <= breaks[4][1]) {
-                    return '#045a8d'
+                    return '#006d2c'
                 }} // end getColor function
+        
+        function drawLegend(breaks){
+
+                // create a new Leaflet control object, and position it top left
+                var legend = L.control({position: 'topleft'});
+
+                // when the legend is added to the map
+                legend.onAdd = function () {
+
+                    // create a new HTML <div> element and give it a class name of "legend"
+                    var div = L.DomUtil.create('div', 'legend');
+
+                    // first append an <h3> tag to the div holding the current attribute
+                    // and norm values (i.e., the mapped phenomena)
+                    div.innerHTML = "<h3>" + attribute + " per " + norm + "</h3>";
+
+                    // for each of our breaks
+                    for (var i = 0; i < breaks.length; i++) {
+                        // determine the color associated with each break value,
+                        // including the lower range value
+                        var color = getColor(breaks[i][0], breaks);
+
+                        // concatenate a <span> tag styled with the color and the range values
+                        // of that class and include a label with the low and a high ends of that class range
+                        div.innerHTML +=
+                           '<span style="background:' + color + '"></span> ' +
+                           '<label>'+(breaks[i][0]*100).toLocaleString() + ' &mdash; ' + 
+                            (breaks[i][1]*100).toLocaleString() + '</label>';
+                    }
+
+                    // return the populated div to be added to the map
+                    return div;
+                };
+
+                // add the legend to the map
+                legend.addTo(map);
+            }
             
     </script>
     
