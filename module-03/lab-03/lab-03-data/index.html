@@ -3,7 +3,7 @@
 
 <head>
     <meta charset=utf-8 />
-    <title>US Unemployment</title>
+    <title>KY Unemployment</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
@@ -95,14 +95,26 @@
             font-size: 1.1em;
             font-weight: bold;
         }
+        .info {
+            padding: 6px 8px;
+            font-size: 1em;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            text-align: right;   
+        }
+        .info h3 {
+            margin: 0;   
+        }
         
     </style>
 </head>
 
 <body>
-    <h1>US Unemployment 2001-2013</h1>
+    <h1>KY Unemployment 2001-2013</h1>
     <div id='map'></div>
     
+<!--    Create and define slider bar control-->
     <div id="ui-controls">
         <label><span class="min">2001</span><span class="max">2013</span>
             <input type="range" min = "2001", max= "2013",
@@ -114,10 +126,10 @@
         
          // instantiate the Leaflet map
         var options = {
-            center: [38.2, -94],
-            zoom: 4,
-            minZoom: 4,
-            maxZoom: 6,
+            center: [37.8393, -85],
+            zoom: 7,
+            minZoom: 0,
+            maxZoom: 20,
             dragging: true,
             zoomControl: true
         }
@@ -126,10 +138,10 @@
         // load map tiles and add to map
         
         var tiles = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-background/{z}/{x}/{y}.{ext}', {
-//            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             subdomains: 'abcd',
-            minZoom: 4,
-            maxZoom: 6,
+            minZoom: 0,
+            maxZoom: 20,
             ext: 'png'
         });
         
@@ -137,18 +149,18 @@
         
         // declare global variables
         
-        var dataLayer; // us states geoJson
+        var dataLayer; // ky counties geoJson
 
         // AJAX requests to load data files (a GeoJSON and a CSV file)
         
-        $.getJSON("us-states.json", function(states) {
+        $.getJSON("ky-counties.json", function(counties) {
 
-            Papa.parse('states-unemployment.csv', {
+            Papa.parse('ky-unemployment-data.csv', {
                 download: true,
                 header: true,
                 complete: function(data) {
 
-                    processData(states, data);
+                    processData(counties, data);
 
                 }
             });
@@ -157,29 +169,29 @@
         
         // function to process/bind CSV attribute data to geometry data
         
-        function processData(states, data) {
+        function processData(counties, data) {
 
-            for (var state in states.features) {
+            for (var county in counties.features) {
 
-                    var props = states.features[state].properties;
+                    var props = counties.features[county].properties;
 
                     for(var d in data.data) {
-                       if(props.STATEFP == data.data[d].STATE_FIP) {
-                          states.features[state].properties = data.data[d]; 
+                       if(props.COUNTY_FIP == data.data[d].CNTY) {
+                          counties.features[county].properties = data.data[d]; 
                           break;
                        }  
                     } // inner for loop is complete
 
                 } // outer for loop is complete
-                drawMap(states);
+                drawMap(counties);
 
         }
 
         // function to draw the geometries to the map
         
-        function drawMap(states) {
+        function drawMap(counties) {
             
-            dataLayer = L.geoJson(states, {
+            dataLayer = L.geoJson(counties, {
                 style: function(feature) {
                     return {
                         color: 'black',
@@ -187,6 +199,7 @@
                         fillOpacity: 1,
                         fillColor: '#1f78b4'
                     };
+                    
                 }
             }).addTo(map);
             
@@ -197,7 +210,12 @@
             drawLegend(breaks);
             
             createSliderUI(breaks);
+            
+                        
+            
         }
+        
+        
         // function to update the map (once for the initial data view and then again to update the map per the user's request)
         
         function updateMap(breaks, attribute) {
@@ -242,15 +260,15 @@
         function getColor(d, breaks) {
             
             if(d <= breaks[1]) {
-                return '#f2f0f7';
+                return '#eff3ff';
             } else if(d <= breaks[2]) {
-                return '#cbc9e2';
+                return '#bdd7e7';
             } else if(d <= breaks[3]) {
-                return '#9e9ac8';
+                return '#6baed6';
             } else if(d <= breaks[4]) {
-                return '#756bb1'
+                return '#3182bd'
             } else if(d <= breaks[5]) {
-                return '#54278f'
+                return '#08519c'
             }
             
         }
@@ -318,6 +336,48 @@
             });
             
         }
+        
+//        function drawInfo() {
+//            
+//            // creates a new control object and locates it in upper right of map
+//            var info = L.control({position: 'bottomright'});
+//            
+//            // creates an empty div wrapper called info and returns it to the map
+//            info.onAdd = function(map) {
+//                
+//                var div = L.DomUtil.create('div', 'info');
+//                
+//                return div;
+//                
+//            }
+//            
+//            // initially the info div is hidden...
+//            info.addTo(map);
+//            $(".info").hide();
+//            
+//            // until someone mouses over it
+//            dataLayer.on('mouseover', function() {
+//                $(".info").show();
+//            });
+//            // and disappears when they leave the county
+//            dataLayer.on('mouseout', function() {
+//                $(".info").hide();    
+//            });
+//            
+//        }
+//        
+//        function updateInfo(breaks) {
+//
+//            // creates a variable populated by the values found in layer.feature.properties
+//            var props = layer.feature.properties;
+//
+//            // creates a more readable alias for the key names found in the js object
+//            var html = "<h3>"+props['NAME']+" County</h3>"+
+//                        "2001"+ props["2001"]+"</b><br>"
+//
+//            // and updates the info panel at upper right.
+//            $(".info").html(html);
+//        }
             
 
     </script>
