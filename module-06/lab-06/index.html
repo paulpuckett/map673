@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>But what does Warren Buffet think?</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    
+    <link href='https://fonts.googleapis.com/css?family=Work+Sans:400,500,600' rel='stylesheet' type='text/css'>
+    
+    <style>
+/*
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background: #3d3d3d;
+      }
+*/
+        body {
+          margin:0;
+          padding:0;
+          font-family: "Work Sans", sans-serif;
+        }
+        #map {
+          position:absolute;
+          top:0;
+          bottom:0;
+          right: 0;
+          width: 67%;
+        }
+        #side-panel {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 33%;
+            background: whitesmoke;
+            margin-left: 5px;
+            margin-right: 5px;
+            border-right: 2px solid;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="map"></div>
+    
+    <div id='side-panel'>
+        <h1>Dairy Queen Locations in the Continental United States</h1>
+        <h2>Does Texas really have 594 locations?</h2>
+        <p>I've often heard people say that any southern town's economic health can be measured by the number of Dairy Queen locations. But is it a southern thing, or an American thing? Via data from the venerable POI factory, this map will show, via choropleth color coding, just where DQ is a thing, and where it isn't. Apparently it is quite a thing in Texas. </p>
+        <h2>About this map</h2>
+        <p>Map 2016 by Paul Puckett</p>
+        <h2>About the data</h2>
+        <p>The data is via The POI Factory (www.poi-factory.com)</p>    
+    
+    </div>
+
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    
+    <script type="cartocss/html" id="dairy_queen_locations_per_state">
+    
+    #dairy_queen_locations_per_state{
+      polygon-fill: #FFFFB2;
+      polygon-opacity: 0.8;
+      line-color: #FFF;
+      line-width: 0.5;
+      line-opacity: 1;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 594] {
+       polygon-fill: #B10026;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 267] {
+       polygon-fill: #E31A1C;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 156] {
+       polygon-fill: #FC4E2A;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 104] {
+       polygon-fill: #FD8D3C;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 100] {
+       polygon-fill: #FEB24C;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 74] {
+       polygon-fill: #FED976;
+    }
+    #dairy_queen_locations_per_state [ pntcnt <= 37] {
+       polygon-fill: #FFFFB2;
+    }
+            
+    </script>
+    
+    <script>
+        
+        var url = 'https://pwpuck.carto.com/api/v2/viz/ad2154dc-680a-11e6-9b0c-0e233c30368f/viz.json'
+        
+        var map = L.map('map', {
+            center: [39,-97],
+            zoom: 4.3,
+            dragging: false,
+            zoomControl: false
+        });
+        
+        var cartoCSS = '#dairy_queen_locations_per_state{'+
+              'polygon-fill: steelblue;'+
+              'polygon-opacity: 0.8;'+
+              'line-color: #FFF;'+
+              'line-width: 0.5;'+
+              'line-opacity: 1;'+
+            '}';
+        
+         var sourceObject = {
+            user_name: 'pwpuck',
+            type: 'cartodb',
+            sublayers: [
+                {
+                    sql: "SELECT * FROM dairy_queen_locations_per_state",
+                    cartocss: $("#dairy_queen_locations_per_state").text()
+                }  
+            ]
+        }
+
+        cartodb.createLayer(map, sourceObject).addTo(map);
+        
+
+
+    </script>
+</body>
+</html>
