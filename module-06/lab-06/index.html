@@ -126,6 +126,14 @@
 
         cartodb.createLayer(map, sourceObject).addTo(map);
         
+        var choroplethLegend = new cdb.geo.ui.Legend.Choropleth({ 
+              title: "# of Dairy Queens per State", 
+              left: "37", right: "594", 
+              colors: [ "#FFFFB2", "#FED976", "#FEB24C", "#FD8D3C", "#FC4E2A", "#E31A1C", "#B10026" ] 
+             });
+            
+        $('#map').append(choroplethLegend.render().el);
+        
 
 
     </script>
